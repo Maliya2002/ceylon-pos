@@ -5,8 +5,8 @@
   "main": "server/src/index.js",
   "scripts": {
     "start": "node server/src/index.js",
-    "build": "prisma generate && cd client && npm install && npm run build",
-    "postinstall": "prisma generate && cd client && npm install && npm run build",
+    "build": "prisma generate && cd client && npm install --include=dev && npm run build",
+    "postinstall": "prisma generate",
     "server": "node server/src/index.js",
     "server:dev": "npm --prefix server run dev",
     "client": "npm --prefix client run dev",
