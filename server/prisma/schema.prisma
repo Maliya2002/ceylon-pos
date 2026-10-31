@@ -1,0 +1,118 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  CASHIER
+  KITCHEN
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  QR
+  SPLIT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  username  String   @unique
+  password  String
+  role      Role     @default(CASHIER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String     // e.g., Rice & Curry, Kottu, Beverages
+  description String?
+  products    Product[]
+  createdAt   DateTime   @default(now())
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String      // e.g., Chicken Kottu, Mixed Rice
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  basePrice   Float
+  isAvailable Boolean     @default(true)
+  variants    Variant[]
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Variant {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String   // e.g., Full, Half, Regular
+  price     Float
+}
+
+model DiningTable {
+  id        String   @id @default(uuid())
+  number    String   @unique // e.g., T-01, T-02
+  capacity  Int      @default(4)
+  isOccupied Boolean @default(false)
+  orders    Order[]
+}
+
+model Order {
+  id             String        @id @default(uuid())
+  orderNumber    Int           @default(autoincrement())
+  orderType      OrderType     @default(TAKEAWAY)
+  status         OrderStatus   @default(PENDING)
+  tableId        String?
+  table          DiningTable?  @relation(fields: [tableId], references: [id])
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  subTotal       Float
+  discount       Float         @default(0)
+  tax            Float         @default(0)
+  grandTotal     Float
+  paymentMethod  PaymentMethod @default(CASH)
+  isPaid         Boolean       @default(false)
+  notes          String?
+  items          OrderItem[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  variantName String?  // e.g., "Full"
+  quantity    Int
+  unitPrice   Float
+  totalPrice  Float
+  notes       String?  // e.g., "Less spicy, extra gravy"
+}
