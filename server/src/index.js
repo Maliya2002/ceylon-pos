@@ -1,4 +1,8 @@
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch (e) {
+  // In production (e.g. Render/Railway), env vars are provided by the environment
+}
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
